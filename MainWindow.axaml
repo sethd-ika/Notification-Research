@@ -5,48 +5,69 @@
         Title="Notification"
         Width="640" Height="320">
 
-    <StackPanel Margin="24" Spacing="16">
-        <ItemsControl x:Name="BannerList">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="local:BannerNotice">
-                    <Border Background="#FFF1C2" CornerRadius="6"
-                            Padding="14,10" Margin="0,0,0,4">
-                        <TextBlock Text="{Binding Message}"
-                                   Foreground="#493900" TextWrapping="Wrap" />
-                    </Border>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-
-        <StackPanel Orientation="Horizontal" Spacing="8">
-            <Button Content="Show banner" Click="ShowBanner" />
-            <Button x:Name="UpdateButton" Content="Update" Click="UpdateBanner" />
-            <Button x:Name="DismissButton" Content="Dismiss" Click="DismissBanner" />
-        </StackPanel>
-
-        <StackPanel Orientation="Horizontal" Spacing="8">
-            <TextBlock Text="Inbox" VerticalAlignment="Center" />
-        
-            <Border x:Name="InboxBadge" IsVisible="False"
-                    Background="#24563C" CornerRadius="12" Padding="7,2">
-                <TextBlock x:Name="InboxBadgeText" Foreground="White" />
-            </Border>
-        
-            <Button Content="New message" Click="ReceiveMessage" />
-            <Button Content="Mark all read" Click="MarkAllRead" />
-        </StackPanel>
-        
-        <StackPanel Spacing="4">
-            <TextBlock Text="Email address" />
-            <TextBox x:Name="EmailInput" AutomationProperties.Name="Email address" />
-
-            <ItemsControl x:Name="EmailNotices">
+    <Grid>
+        <StackPanel Margin="24" Spacing="16">
+            <ItemsControl x:Name="BannerList">
                 <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="local:InlineNotice">
-                        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                    <DataTemplate x:DataType="local:BannerNotice">
+                        <Border Background="#FFF1C2" CornerRadius="6"
+                                Padding="14,10" Margin="0,0,0,4">
+                            <TextBlock Text="{Binding Message}"
+                                       Foreground="#493900" TextWrapping="Wrap" />
+                        </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Show banner" Click="ShowBanner" />
+                <Button x:Name="UpdateButton" Content="Update" Click="UpdateBanner" />
+                <Button x:Name="DismissButton" Content="Dismiss" Click="DismissBanner" />
+                <Button Content="Show toast" Click="ShowToast" />
+                <Button Content="Show dialog" Click="ShowNotificationDialog" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Inbox" VerticalAlignment="Center" />
+
+                <Border x:Name="InboxBadge" IsVisible="False"
+                        Background="#24563C" CornerRadius="12" Padding="7,2">
+                    <TextBlock x:Name="InboxBadgeText" Foreground="White" />
+                </Border>
+
+                <Button Content="New message" Click="ReceiveMessage" />
+                <Button Content="Mark all read" Click="MarkAllRead" />
+            </StackPanel>
+
+            <StackPanel Spacing="4">
+                <TextBlock Text="Email address" />
+                <TextBox x:Name="EmailInput" AutomationProperties.Name="Email address" />
+
+                <ItemsControl x:Name="EmailNotices">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="local:InlineNotice">
+                            <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
         </StackPanel>
-    </StackPanel>
+        <ItemsControl x:Name="ToastList"
+                  HorizontalAlignment="Right"
+                  VerticalAlignment="Bottom"
+                  Margin="16"
+                  MaxWidth="320"
+                  IsHitTestVisible="False">
+            <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="local:ToastNotice">
+                        <Border Background="#26342E" CornerRadius="8"
+                                Padding="14,10" Margin="0,4,0,0">
+                            <TextBlock Text="{Binding Message}"
+                                       Foreground="White"
+                                       TextWrapping="Wrap" />
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </Grid>
 </Window>

@@ -1,9 +1,11 @@
 using System;
+using System.Linq;
 using System.Threading;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using System.Threading.Tasks;
 using Avalonia.Interactivity;
-using Avalonia.Threading;
+using System.Collections.Generic;
 
 namespace Notification;
 
@@ -12,16 +14,20 @@ public partial class MainWindow : Window
     private const string InboxTarget = "inbox";
     private const string ConnectionId = "connection";
     private const string EmailTarget = "profile.email";
-    private readonly KeyedNoticeStore<BannerNotice> _store = new();
     private readonly IBannerService _banners;
     private readonly IDisposable _subscription;
     private readonly IDisposable _inlineSubscription;
     private int _unreadCount;
-    private readonly KeyedNoticeStore<int> _badgeStore = new();
     private readonly IBadgeService _badges;
-    private readonly KeyedNoticeStore<InlineNotice> _inlineStore = new();
+    private readonly IToastService _toast;
     private readonly EmailValidator _emailValidator;
     private readonly EmptyEmailValidator _emptyEmailValidator;
+    private readonly INotificationDialogService _notificationDialogs;
+    private readonly KeyedNoticeStore<int> _badgeStore = new();
+    private readonly KeyedNoticeStore<BannerNotice> _store = new();
+    private readonly KeyedNoticeStore<ToastNotice> _toastStore = new();
+    private readonly KeyedNoticeStore<InlineNotice> _inlineStore = new();
+    private readonly Dictionary<string, IDisposable> _toastTimers = new();
     private CancellationTokenSource? _showBannerToken;
 
     public MainWindow()
@@ -35,6 +41,12 @@ public partial class MainWindow : Window
         _badges = new BadgeService(_badgeStore);
         var badgeSubscription = _badgeStore.Subscribe(InboxTarget, RefreshInboxBadge);
         RefreshInboxBadge();
+
+        _toast = new ToastService(_toastStore);
+        var toastSubscription = _toastStore.Subscribe(ToastService.Target, RefreshToasts);
+        RefreshToasts();
+
+        _notificationDialogs = new NotificationDialogService(this);
 
         _emailValidator = new EmailValidator(new InlineNoticeService(_inlineStore));
         _emptyEmailValidator = new EmptyEmailValidator(new InlineNoticeService(_inlineStore));
@@ -72,7 +84,48 @@ public partial class MainWindow : Window
             _showBannerToken?.Cancel();
             _inlineSubscription.Dispose();
             badgeSubscription.Dispose();
+
+            toastSubscription.Dispose();
+
+            foreach (var timer in _toastTimers.Values)
+                timer.Dispose();
+            
+            _toastTimers.Clear();
         };
+    }
+
+    private async void ShowNotificationDialog(object? sender, RoutedEventArgs e)
+    {
+        var notice = new DialogNotice("Inbox status", $"Unread messages: {_unreadCount}");
+        await _notificationDialogs.ShowAsync(notice);
+    }
+
+    private void ShowToast(object? sender, RoutedEventArgs e)
+    {
+        _toast.Show("File saved");
+    }
+
+    private void RefreshToasts()
+    {
+        var entries = _toastStore.Read(ToastService.Target);
+        ToastList.ItemsSource = entries.Values;
+
+        // A dismissed toast no longer needs its timer.
+        foreach (var key in _toastTimers.Keys.Except(entries.Keys).ToArray())
+        {
+            _toastTimers[key].Dispose();
+            _toastTimers.Remove(key);
+        }
+
+        foreach (var (key, notice) in entries)
+        {
+            if (_toastTimers.ContainsKey(key))
+                continue;
+
+            _toastTimers[key] = DispatcherTimer.RunOnce(
+                () => _toast.Dismiss(notice.Id),
+                TimeSpan.FromSeconds(3));
+        }
     }
 
     private void RefreshInlineNotices()

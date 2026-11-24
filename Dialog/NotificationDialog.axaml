@@ -1,0 +1,22 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="using:Notification"
+        x:Class="Notification.NotificationDialog"
+        x:DataType="local:DialogNotice"
+        Title="{Binding Title}"
+        Width="380"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        ShowInTaskbar="False">
+
+    <StackPanel Margin="24" Spacing="20">
+        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" />
+
+        <Button Content="Close"
+                HorizontalAlignment="Right"
+                IsDefault="True"
+                IsCancel="True"
+                Click="CloseDialog" />
+    </StackPanel>
+</Window>
